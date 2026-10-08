@@ -290,5 +290,17 @@ Jika server host memang menggunakan Nginx untuk mengelola SSL Let's Encrypt / be
    ```
 3. Nginx bawaan host akan menerima port 80 & 443 lalu meneruskan ke `http://127.0.0.1:8000` (lihat Bagian 3: METODE A).
 
+### Error: `exec /usr/local/bin/entrypoint.sh: exec format error`
+Error ini terjadi ketika kernel Linux gagal mengeksekusi script bash karena format karakter Windows (CRLF atau UTF-8 BOM):
+- **Penyebab**: Script bash disimpan dengan format baris Windows (`\r\n`) atau karakter tersembunyi UTF-8 BOM (`0xEF 0xBB 0xBF`).
+- **Solusi**: Di file `Dockerfile`, baris entrypoint telah dimutakhirkan menjadi:
+  ```dockerfile
+  RUN tr -d '\r' < /usr/local/bin/entrypoint.sh > /usr/local/bin/entrypoint_clean.sh \
+      && mv /usr/local/bin/entrypoint_clean.sh /usr/local/bin/entrypoint.sh \
+      && chmod +x /usr/local/bin/entrypoint.sh
+  ENTRYPOINT ["/bin/sh", "/usr/local/bin/entrypoint.sh"]
+  ```
+  Lalu di server, cukup jalankan `git pull origin main` dan `docker compose up -d --build`.
+
 ---
 *Dokumentasi ini tersimpan di `Docs/SERVER-DEPLOYMENT-GUIDE.md` pada repositori Beach Camp.*

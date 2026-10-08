@@ -54,7 +54,9 @@ COPY docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
 # Copy Entrypoint Script
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN tr -d '\r' < /usr/local/bin/entrypoint.sh > /usr/local/bin/entrypoint_clean.sh \
+    && mv /usr/local/bin/entrypoint_clean.sh /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
 # Copy Application Code
 COPY . /var/www/html
@@ -73,5 +75,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 EXPOSE 9000
 
 # Set Entrypoint and Default Command
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
