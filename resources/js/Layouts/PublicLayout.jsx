@@ -93,8 +93,8 @@ export default function PublicLayout({ children, transparentNav = false }) {
                         />
                     </Link>
 
-                    {/* Desktop Menu */}
-                    <nav className="hidden md:flex items-center gap-7">
+                    {/* Desktop Menu (Visible on Desktop >= 1024px) */}
+                    <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
@@ -112,52 +112,57 @@ export default function PublicLayout({ children, transparentNav = false }) {
                         ))}
                     </nav>
 
-                    {/* CTA Button Desktop */}
-                    <div className="hidden md:flex items-center gap-3">
+                    {/* Right Action: Desktop & Tablet CTA */}
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                        {/* CTA button visible on tablet (md) & desktop (lg) */}
                         <Link
                             href={route('booking.create')}
-                            className="inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+                            className="hidden sm:inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
                         >
                             <CalendarCheck className="w-4 h-4" />
                             <span>Booking Sekarang</span>
                         </Link>
-                    </div>
 
-                    {/* Mobile Hamburger Button */}
-                    <button
-                        type="button"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className={`md:hidden p-2 rounded-lg transition-colors ${
-                            isSolid ? 'text-brand-text hover:bg-brand-secondary/40' : 'text-white hover:bg-white/10'
-                        }`}
-                        aria-label="Toggle menu"
-                    >
-                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
+                        {/* Hamburger Button (Visible on Mobile & Tablet < 1024px) */}
+                        <button
+                            type="button"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className={`lg:hidden p-2 rounded-xl transition-colors ${
+                                isSolid 
+                                    ? 'text-brand-text hover:bg-brand-secondary/40' 
+                                    : 'text-white bg-black/20 hover:bg-black/40'
+                            }`}
+                            aria-label="Toggle menu"
+                        >
+                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
 
-                {/* Mobile Menu Drawer */}
+                {/* Mobile & Tablet Menu Drawer (< 1024px) */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden bg-brand-bg border-b border-brand-secondary/60 shadow-xl px-4 pt-3 pb-6 space-y-2 mt-3 animate-fade-in">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.name}
-                                href={link.href}
-                                onClick={() => setMobileMenuOpen(false)}
-                                className={`block px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
-                                    link.active 
-                                        ? 'bg-brand-primary text-white font-semibold' 
-                                        : 'text-brand-text hover:bg-brand-secondary/30'
-                                }`}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
-                        <div className="pt-3">
+                    <div className="lg:hidden bg-brand-bg/98 backdrop-blur-md border-b border-brand-secondary/70 shadow-2xl px-5 sm:px-8 pt-4 pb-7 space-y-2 mt-3 animate-fade-in">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                            {navLinks.map((link) => (
+                                <Link
+                                    key={link.name}
+                                    href={link.href}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                                        link.active 
+                                            ? 'bg-brand-primary text-white font-semibold shadow-sm' 
+                                            : 'text-brand-text hover:bg-brand-secondary/40'
+                                    }`}
+                                >
+                                    {link.name}
+                                </Link>
+                            ))}
+                        </div>
+                        <div className="pt-2 sm:hidden">
                             <Link
                                 href={route('booking.create')}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="w-full flex items-center justify-center gap-2 bg-brand-primary text-white font-semibold py-3 rounded-xl shadow"
+                                className="w-full flex items-center justify-center gap-2 bg-brand-primary text-white font-semibold py-3.5 rounded-xl shadow"
                             >
                                 <CalendarCheck className="w-5 h-5" />
                                 <span>Booking Sekarang</span>

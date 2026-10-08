@@ -133,10 +133,10 @@ export default function Contact({ faqs, mapsEmbed }) {
                     </div>
 
                     {/* FAQ & Maps Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
                         {/* FAQ Accordions */}
                         <div>
-                            <div className="mb-8">
+                            <div className="mb-6 md:mb-8">
                                 <span className="text-brand-primary font-semibold text-sm tracking-wider uppercase">
                                     Pertanyaan Umum
                                 </span>

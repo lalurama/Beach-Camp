@@ -48,18 +48,18 @@ export default function AdminLayout({ children, header }) {
                 </div>
             )}
 
-            {/* Mobile Backdrop */}
+            {/* Mobile & Tablet Backdrop (<1024px) */}
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 z-40 bg-black/50 md:hidden"
+                    className="fixed inset-0 z-40 bg-black/50 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside 
-                className={`fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#231A12] text-white flex flex-col justify-between transition-transform duration-300 ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+                className={`fixed lg:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#231A12] text-white flex flex-col justify-between transition-transform duration-300 ${
+                    sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                 }`}
             >
                 <div>
@@ -69,7 +69,7 @@ export default function AdminLayout({ children, header }) {
                         <button 
                             type="button"
                             onClick={() => setSidebarOpen(false)}
-                            className="md:hidden text-white/70 hover:text-white"
+                            className="lg:hidden text-white/70 hover:text-white"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -139,13 +139,13 @@ export default function AdminLayout({ children, header }) {
 
             {/* Main Area */}
             <div className="flex-1 flex flex-col min-w-0">
-                {/* Top bar for mobile */}
-                <header className="bg-white border-b border-brand-secondary/60 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+                {/* Top bar */}
+                <header className="bg-white border-b border-brand-secondary/60 px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(true)}
-                            className="md:hidden p-2 rounded-xl text-brand-text hover:bg-brand-secondary/40"
+                            className="lg:hidden p-2 rounded-xl text-brand-text hover:bg-brand-secondary/40"
                         >
                             <Menu className="w-6 h-6" />
                         </button>

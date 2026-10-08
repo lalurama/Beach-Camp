@@ -55,7 +55,7 @@ export default function Index({ packages, filters }) {
             </section>
 
             {/* Filter Bar */}
-            <div className="bg-white border-b border-brand-secondary py-5 sticky top-16 z-30 shadow-sm">
+            <div className="bg-white border-b border-brand-secondary py-5 sticky top-20 z-30 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-brand-text">
                         <Filter className="w-4 h-4 text-brand-primary" />

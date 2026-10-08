@@ -128,7 +128,7 @@ export default function Create({ packages, selectedPackage, blockedDates }) {
                     <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-brand-secondary shadow-xl overflow-hidden">
                         {/* STEP 1: Pilih Paket & Tamu */}
                         {step === 1 && (
-                            <div className="p-8 sm:p-10 space-y-8 animate-fade-in">
+                            <div className="p-6 sm:p-8 md:p-10 space-y-8 animate-fade-in">
                                 <div>
                                     <h2 className="font-display font-bold text-2xl text-brand-text mb-1 flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-brand-primary text-white text-sm flex items-center justify-center">1</span>
@@ -222,7 +222,7 @@ export default function Create({ packages, selectedPackage, blockedDates }) {
 
                         {/* STEP 2: Pilih Tanggal & Ketersediaan */}
                         {step === 2 && (
-                            <div className="p-8 sm:p-10 space-y-8 animate-fade-in">
+                            <div className="p-6 sm:p-8 md:p-10 space-y-8 animate-fade-in">
                                 <div>
                                     <h2 className="font-display font-bold text-2xl text-brand-text mb-1 flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-brand-primary text-white text-sm flex items-center justify-center">2</span>
@@ -311,7 +311,7 @@ export default function Create({ packages, selectedPackage, blockedDates }) {
 
                         {/* STEP 3: Data Pemesan & Konfirmasi Biaya */}
                         {step === 3 && (
-                            <div className="p-8 sm:p-10 space-y-8 animate-fade-in">
+                            <div className="p-6 sm:p-8 md:p-10 space-y-8 animate-fade-in">
                                 <div>
                                     <h2 className="font-display font-bold text-2xl text-brand-text mb-1 flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-brand-primary text-white text-sm flex items-center justify-center">3</span>
@@ -339,7 +339,7 @@ export default function Create({ packages, selectedPackage, blockedDates }) {
                                             />
                                         </div>
                                         {errors.customer_name && (
-                                            <p className="text-xs text-brand-error mt-1">{errors.customer_name}</p>
+                                             <p className="text-xs text-brand-error mt-1">{errors.customer_name}</p>
                                         )}
                                     </div>
 
@@ -426,11 +426,11 @@ export default function Create({ packages, selectedPackage, blockedDates }) {
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-center pt-4">
+                                <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-4">
                                     <button
                                         type="button"
                                         onClick={() => setStep(2)}
-                                        className="inline-flex items-center gap-2 text-brand-text hover:text-brand-primary font-semibold text-sm px-5 py-2.5 rounded-full transition-colors"
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-brand-text hover:text-brand-primary font-semibold text-sm px-5 py-2.5 rounded-full transition-colors"
                                     >
                                         <ArrowLeft className="w-4 h-4" />
                                         <span>Kembali</span>
@@ -439,7 +439,7 @@ export default function Create({ packages, selectedPackage, blockedDates }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="inline-flex items-center gap-2.5 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-50 text-white font-semibold text-base px-9 py-4 rounded-full shadow-lg transition-all transform hover:-translate-y-0.5"
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-50 text-white font-semibold text-base px-9 py-4 rounded-full shadow-lg transition-all transform hover:-translate-y-0.5"
                                     >
                                         <CalendarCheck className="w-5 h-5" />
                                         <span>{processing ? 'Memproses...' : 'Konfirmasi & Buat Booking'}</span>

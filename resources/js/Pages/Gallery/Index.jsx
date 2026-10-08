@@ -45,7 +45,7 @@ export default function Index({ galleries, currentCategory }) {
             </section>
 
             {/* Category Filter Tabs */}
-            <div className="bg-white border-b border-brand-secondary py-4 sticky top-16 z-30 shadow-sm">
+            <div className="bg-white border-b border-brand-secondary py-4 sticky top-20 z-30 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                         {categories.map((cat) => (

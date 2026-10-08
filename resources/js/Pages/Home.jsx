@@ -197,11 +197,13 @@ export default function Home({ popularPackages, galleries, testimonials, heroTit
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {popularPackages.map((pkg) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                        {popularPackages.map((pkg, idx) => (
                             <div 
                                 key={pkg.id} 
-                                className="bg-white rounded-3xl overflow-hidden border border-brand-secondary/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
+                                className={`bg-white rounded-3xl overflow-hidden border border-brand-secondary/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group ${
+                                    idx === 2 ? 'md:col-span-2 lg:col-span-1 md:max-w-md md:mx-auto lg:max-w-none w-full' : ''
+                                }`}
                             >
                                 {/* Package Image & Badge */}
                                 <div className="relative h-56 overflow-hidden bg-gray-100">
@@ -335,11 +337,13 @@ export default function Home({ popularPackages, galleries, testimonials, heroTit
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {testimonials.slice(0, 3).map((item) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                            {testimonials.slice(0, 3).map((item, idx) => (
                                 <div 
                                     key={item.id} 
-                                    className="bg-white p-7 rounded-3xl border border-brand-secondary shadow-sm flex flex-col justify-between"
+                                    className={`bg-white p-7 rounded-3xl border border-brand-secondary shadow-sm flex flex-col justify-between ${
+                                        idx === 2 ? 'md:col-span-2 lg:col-span-1 md:max-w-md md:mx-auto lg:max-w-none w-full' : ''
+                                    }`}
                                 >
                                     <div>
                                         {/* Stars */}

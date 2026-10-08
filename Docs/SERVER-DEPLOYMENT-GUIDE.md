@@ -1,0 +1,249 @@
+# Panduan Setup & Deployment Server (VPS) Menggunakan Docker
+
+Panduan ini ditujukan bagi Anda yang telah memiliki server (seperti VPS Ubuntu 22.04/24.04 LTS, Debian, atau cloud provider seperti DigitalOcean, Linode, AWS EC2, Contabo, dsb) dan telah menginstal Docker & Docker Compose.
+
+---
+
+## 1. Persiapan Awal di Server
+
+Pastikan Anda telah login ke server via SSH:
+```bash
+ssh user@IP_SERVER_ANDA
+```
+
+Pastikan Docker & Docker Compose sudah aktif dan berjalan:
+```bash
+docker --version
+docker compose version
+```
+
+Pastikan firewall mengizinkan port web dan SSH:
+```bash
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
+---
+
+## 2. Langkah-Langkah Setup Aplikasi di Server
+
+### Langkah 1: Pindahkan / Clone Kode ke Server
+
+Anda dapat melakukan `git clone` atau meng-upload file proyek ke direktori server (misal `/var/www/beachcamp`):
+
+```bash
+# Buat direktori (jika belum ada)
+sudo mkdir -p /var/www/beachcamp
+sudo chown -R $USER:$USER /var/www/beachcamp
+
+# Clone repositori (ganti dengan URL repo Git Anda)
+git clone https://github.com/username/beachcamp.git /var/www/beachcamp
+
+# Masuk ke direktori proyek
+cd /var/www/beachcamp
+```
+
+---
+
+### Langkah 2: Konfigurasi File Environment Produksi (`.env`)
+
+Salin berkas template environment:
+```bash
+cp .env.docker.example .env
+```
+
+Buka dan sesuaikan file `.env` menggunakan editor teks (misal `nano`):
+```bash
+nano .env
+```
+
+**Konfigurasi penting untuk Server Production:**
+```env
+APP_NAME="Beach Camp"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://domain-anda.com    # Atau http://IP_SERVER jika belum ada domain
+
+# Port Nginx Docker:
+# Gunakan 80 jika Nginx Docker langsung menerima traffic internet.
+# Gunakan 8000 jika Anda memasang Nginx Host + Certbot SSL di server.
+APP_PORT=80
+
+# Kredensial Database MySQL (Ganti dengan password kuat Anda):
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=beachcamp
+DB_USERNAME=beachcamp
+DB_PASSWORD=PasswordDatabaseSangatAman123!
+DB_ROOT_PASSWORD=RootPasswordDatabaseSangatAman123!
+
+# Nomor WhatsApp Admin & Kontak (Muncul di website):
+MAIL_FROM_ADDRESS="halo@domain-anda.com"
+```
+*Simpan perubahan dengan menekan `Ctrl + O`, lalu `Enter`, lalu keluar dengan `Ctrl + X`.*
+
+---
+
+### Langkah 3: Build & Jalankan Container
+
+Jalankan perintah ini untuk membangun image dan mengaktifkan service di latar belakang:
+```bash
+docker compose up -d --build
+```
+
+Periksa status container:
+```bash
+docker compose ps
+```
+Pastikan ketiga container berstatus running (`Up` / `healthy`):
+- `beachcamp_app`
+- `beachcamp_web`
+- `beachcamp_db`
+
+---
+
+### Langkah 4: Migrasi Database & Seeder Data Awal
+
+Setelah container aktif, jalankan migrasi database dan seed data awal:
+```bash
+docker compose exec app php artisan migrate --force --seed
+```
+
+> Kredensial Admin Bawaan:
+> - **URL Login**: `http://IP_SERVER/login` atau `https://domain-anda.com/login`
+> - **Email**: `admin@beachcamp.id`
+> - **Password**: `password` *(Harap segera ganti password di profil admin)*
+
+---
+
+### Langkah 5: Optimasi Cache Produksi Laravel
+
+Jalankan optimasi performa Laravel (meng-cache config, route, dan view):
+```bash
+docker compose exec app php artisan optimize
+docker compose exec app php artisan storage:link
+```
+
+---
+
+## 3. Menghubungkan Domain & Setup SSL Gratis (HTTPS)
+
+Untuk mengamankan website dengan HTTPS (`https://domain-anda.com`), ada dua metode yang sangat disarankan:
+
+### METODE A (Paling Populer & Aman): Nginx Reverse Proxy di Host Server
+
+Pada metode ini, Nginx di server host menerima traffic 80 & 443 dengan SSL Certbot, lalu mem-proxy request ke container Docker yang berjalan di port `8000`.
+
+1. Di file `.env`, ubah port Docker menjadi 8000:
+   ```env
+   APP_PORT=8000
+   ```
+   Lalu restart container:
+   ```bash
+   docker compose up -d
+   ```
+
+2. Pasang Nginx dan Certbot di server Ubuntu:
+   ```bash
+   sudo apt update
+   sudo apt install -y nginx certbot python3-certbot-nginx
+   ```
+
+3. Buat konfigurasi Nginx host:
+   ```bash
+   sudo nano /etc/nginx/sites-available/beachcamp
+   ```
+   Isi dengan konfigurasi berikut:
+   ```nginx
+   server {
+       server_name domain-anda.com www.domain-anda.com;
+
+       client_max_body_size 64M;
+
+       location / {
+           proxy_pass http://127.0.0.1:8000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+
+4. Aktifkan konfigurasi dan periksa:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/beachcamp /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+
+5. Dapatkan sertifikat SSL otomatis dari Let's Encrypt:
+   ```bash
+   sudo certbot --nginx -d domain-anda.com -d www.domain-anda.com
+   ```
+   Certbot akan otomatis memperbarui SSL setiap 90 hari!
+
+---
+
+### METODE B: Menggunakan Cloudflare (Tanpa Setup Nginx di Host)
+
+1. Arahkan DNS domain Anda ke Cloudflare.
+2. Buat **DNS A Record** mengarah ke IP Server VPS Anda dengan status **Proxied (Awan Oranye)**.
+3. Di dashboard Cloudflare -> tab **SSL/TLS**, pilih mode **Flexible** atau **Full**.
+4. Biarkan `APP_PORT=80` di `.env` dan jalankan `docker compose up -d`. Website Anda otomatis mendapatkan SSL gratis dari Cloudflare.
+
+---
+
+## 4. Menjadwalkan Task Scheduler & Background Jobs
+
+Laravel memiliki scheduled tasks (seperti pembersihan cache, cek reservasi, dsb). Agar berjalan otomatis di server, tambahkan ke crontab server host:
+
+```bash
+crontab -e
+```
+
+Tambahkan baris berikut di baris paling bawah:
+```cron
+* * * * * cd /var/www/beachcamp && docker compose exec -T app php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+## 5. Prosedur Update Kode di Masa Depan (Deployment Update)
+
+Setiap kali Anda meng-update fitur atau kode aplikasi:
+
+```bash
+cd /var/www/beachcamp
+
+# 1. Ambil kode terbaru dari Git
+git pull origin main
+
+# 2. Rebuild container jika ada penambahan package/dependensi baru
+docker compose up -d --build
+
+# 3. Jalankan migrasi database jika ada tabel baru
+docker compose exec app php artisan migrate --force
+
+# 4. Refresh cache produksi
+docker compose exec app php artisan optimize
+```
+
+---
+
+## 6. Backup Database MySQL Berkala
+
+Untuk membuat backup database sewaktu-waktu:
+```bash
+docker compose exec -T db mysqldump -u beachcamp -pPasswordDatabaseSangatAman123! beachcamp > backup_$(date +%F).sql
+```
+Untuk merestore database dari file backup:
+```bash
+cat backup_nama_file.sql | docker compose exec -T db mysql -u beachcamp -pPasswordDatabaseSangatAman123! beachcamp
+```
+
+---
+*Dokumentasi ini tersimpan di `Docs/SERVER-DEPLOYMENT-GUIDE.md` pada repositori Beach Camp.*
