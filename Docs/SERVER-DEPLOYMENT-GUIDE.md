@@ -246,4 +246,49 @@ cat backup_nama_file.sql | docker compose exec -T db mysql -u beachcamp -pPasswo
 ```
 
 ---
+
+## 7. Troubleshooting Masalah Umum di Server
+
+### Error: `failed to bind host port 0.0.0.0:80/tcp: address already in use`
+Pesan ini berarti **port 80 di server host sudah dipakai oleh proses/layanan lain** sebelum Docker mencoba menggunakannya.
+
+#### 1. Cara Cek Siapa yang Memakai Port 80:
+```bash
+sudo ss -tulpn | grep :80
+# atau
+sudo lsof -i :80
+```
+Biasanya pelakunya adalah:
+- Service **Apache2** (`apache2`) yang otomatis berjalan saat instalasi OS Ubuntu.
+- Service **Nginx** bawaan OS (`nginx`) yang sudah berjalan di background.
+- Container Docker lain yang belum dimatikan.
+
+#### 2. Solusi A: Matikan Web Server Bawaan OS (Jika Ingin Port 80 Murni untuk Docker)
+Jika Anda tidak memerlukan Apache2 atau Nginx bawaan host:
+```bash
+# Matikan Apache2:
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+
+# ATAU matikan Nginx bawaan host:
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+
+# Lalu jalankan kembali docker:
+docker compose up -d
+```
+
+#### 3. Solusi B (Direkomendasikan): Alihkan Port Docker ke 8000
+Jika server host memang menggunakan Nginx untuk mengelola SSL Let's Encrypt / beberapa domain:
+1. Di file `.env`, ubah port Docker menjadi 8000:
+   ```env
+   APP_PORT=8000
+   ```
+2. Jalankan kembali Docker:
+   ```bash
+   docker compose up -d
+   ```
+3. Nginx bawaan host akan menerima port 80 & 443 lalu meneruskan ke `http://127.0.0.1:8000` (lihat Bagian 3: METODE A).
+
+---
 *Dokumentasi ini tersimpan di `Docs/SERVER-DEPLOYMENT-GUIDE.md` pada repositori Beach Camp.*

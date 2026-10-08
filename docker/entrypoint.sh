@@ -20,13 +20,25 @@ mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/bootstrap/cache
 
 # Fix permissions
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
+
+# Ensure vendor directory exists (in case host volume mount masked it)
+if [ ! -f /var/www/html/vendor/autoload.php ]; then
+    echo "Vendor directory missing. Installing composer dependencies..."
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+fi
+
+# Ensure compiled frontend assets exist
+if [ ! -d /var/www/html/public/build ] || [ ! -f /var/www/html/public/build/manifest.json ]; then
+    echo "Compiled frontend assets missing. Building frontend assets..."
+    npm run build || true
+fi
 
 # Generate app key if not set
 if ! grep -q "^APP_KEY=base64:" /var/www/html/.env 2>/dev/null; then
     echo "Generating Application Key..."
-    php artisan key:generate --force
+    php artisan key:generate --force || true
 fi
 
 # Ensure storage link exists
