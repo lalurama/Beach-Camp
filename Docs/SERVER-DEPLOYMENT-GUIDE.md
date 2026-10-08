@@ -338,37 +338,31 @@ Error ini terjadi ketika domain diakses via HTTPS (`https://domain-anda.com`), t
   2. Tanpa konfigurasi *Trust Proxies*, Laravel tidak mengetahui bahwa pengguna aslinya mengakses via HTTPS, sehingga Laravel men-generate URL asset (`@vite`, `asset()`, `route()`) dengan skema `http://`.
   3. Browser memblokir semua resource HTTP pada halaman HTTPS demi keamanan (kebijakan *Mixed Content*).
 
-- **Best Practice & Solusi yang Telah Diterapkan**:
-  1. **Trust Proxies di Laravel 11 (`bootstrap/app.php`)**:
-     Menambahkan `$middleware->trustProxies(at: '*');` agar Laravel mempercayai header `X-Forwarded-Proto: https` yang dikirimkan oleh Reverse Proxy.
-  2. **Force HTTPS Scheme (`app/Providers/AppServiceProvider.php`)**:
-     Memaksa URL scheme ke HTTPS saat di lingkungan produksi:
-     ```php
-     if ($this->app->environment('production') || str_starts_with((string) config('app.url'), 'https://')) {
-         URL::forceScheme('https');
-     }
-     ```
-  3. **Content Security Policy Upgrade Insecure Requests (`resources/views/app.blade.php`)**:
-     Menambahkan meta tag sebagai *defense-in-depth* di sisi browser:
-     ```html
-     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-     ```
-  4. **Konfigurasi Environment Server (`.env`)**:
-     Pastikan `APP_URL` menggunakan `https://`:
-     ```env
-     APP_URL=https://beachcamp.ruangexperiment.web.id
-     ```
-  5. **Header Reverse Proxy Nginx Host**:
-     Pastikan Nginx di server host meneruskan header protokol:
+- **Best Practice & Solusi Lengkap yang Diterapkan**:
+  1. **Dedicated Middleware ForceHttps (`app/Http/Middleware/ForceHttps.php`)**:
+     Secara otomatis mendeteksi jika aplikasi diakses melalui domain eksternal (bukan localhost) atau melalui Cloudflare/Reverse Proxy, lalu:
+     - Mengubah skema URL generator ke `https://` (`URL::forceScheme('https')`).
+     - Mengatur state server request menjadi aman (`$request->server->set('HTTPS', 'on')`) sehingga Ziggy, Inertia, dan Axios selalu men-generate URL `https://`.
+     - Menyuntikkan HTTP header `Content-Security-Policy: upgrade-insecure-requests` di setiap HTTP response.
+  2. **Trust Proxies di Laravel 11 (`bootstrap/app.php`)**:
+     Menambahkan `$middleware->trustProxies(at: '*');` dan mendaftarkan `ForceHttps::class` di urutan pertama web middleware stack.
+  3. **Konfigurasi Nginx Container (`docker/nginx/default.conf`)**:
+     Menambahkan mapping `fastcgi_param HTTPS $fastcgi_https;` dan HTTP header CSP `upgrade-insecure-requests` langsung dari web server container.
+  4. **Host Reverse Proxy (Nginx di Server Host)**:
+     Bila menggunakan Cloudflare, pastikan reverse proxy di server host mengirimkan:
      ```nginx
-     proxy_set_header X-Forwarded-Proto $scheme;
+     proxy_set_header Host $host;
+     proxy_set_header X-Real-IP $remote_addr;
+     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+     proxy_set_header X-Forwarded-Proto https;
      ```
-  6. **Clear Cache Route & Config**:
-     Setelah mengubah konfigurasi, bersihkan cache lama di container:
+  5. **Clear Cache & Restart Container**:
      ```bash
+     docker compose restart web
      docker compose exec app php artisan optimize:clear
      docker compose exec app php artisan optimize
      ```
 
 ---
 *Dokumentasi ini tersimpan di `Docs/SERVER-DEPLOYMENT-GUIDE.md` pada repositori Beach Camp.*
+
