@@ -330,5 +330,45 @@ Error ini terjadi ketika password yang dikirim oleh Laravel di `.env` **berbeda*
      docker compose exec app php artisan migrate --force --seed
      ```
 
+### Error: `Mixed Content: The page was loaded over HTTPS, but requested an insecure stylesheet/script/endpoint`
+Error ini terjadi ketika domain diakses via HTTPS (`https://domain-anda.com`), tetapi browser mendeteksi CSS, JS, font, atau API endpoint diminta menggunakan skema `http://`:
+
+- **Penyebab Utama**:
+  1. SSL ditangani oleh Reverse Proxy (seperti Nginx di Host atau Cloudflare), sementara koneksi antara Reverse Proxy dan container Docker menggunakan HTTP biasa (`http://127.0.0.1:8000`).
+  2. Tanpa konfigurasi *Trust Proxies*, Laravel tidak mengetahui bahwa pengguna aslinya mengakses via HTTPS, sehingga Laravel men-generate URL asset (`@vite`, `asset()`, `route()`) dengan skema `http://`.
+  3. Browser memblokir semua resource HTTP pada halaman HTTPS demi keamanan (kebijakan *Mixed Content*).
+
+- **Best Practice & Solusi yang Telah Diterapkan**:
+  1. **Trust Proxies di Laravel 11 (`bootstrap/app.php`)**:
+     Menambahkan `$middleware->trustProxies(at: '*');` agar Laravel mempercayai header `X-Forwarded-Proto: https` yang dikirimkan oleh Reverse Proxy.
+  2. **Force HTTPS Scheme (`app/Providers/AppServiceProvider.php`)**:
+     Memaksa URL scheme ke HTTPS saat di lingkungan produksi:
+     ```php
+     if ($this->app->environment('production') || str_starts_with((string) config('app.url'), 'https://')) {
+         URL::forceScheme('https');
+     }
+     ```
+  3. **Content Security Policy Upgrade Insecure Requests (`resources/views/app.blade.php`)**:
+     Menambahkan meta tag sebagai *defense-in-depth* di sisi browser:
+     ```html
+     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+     ```
+  4. **Konfigurasi Environment Server (`.env`)**:
+     Pastikan `APP_URL` menggunakan `https://`:
+     ```env
+     APP_URL=https://beachcamp.ruangexperiment.web.id
+     ```
+  5. **Header Reverse Proxy Nginx Host**:
+     Pastikan Nginx di server host meneruskan header protokol:
+     ```nginx
+     proxy_set_header X-Forwarded-Proto $scheme;
+     ```
+  6. **Clear Cache Route & Config**:
+     Setelah mengubah konfigurasi, bersihkan cache lama di container:
+     ```bash
+     docker compose exec app php artisan optimize:clear
+     docker compose exec app php artisan optimize
+     ```
+
 ---
 *Dokumentasi ini tersimpan di `Docs/SERVER-DEPLOYMENT-GUIDE.md` pada repositori Beach Camp.*
