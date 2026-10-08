@@ -63,6 +63,7 @@ COPY . /var/www/html
 
 # Copy Compiled Assets from Stage 1
 COPY --from=frontend-builder /app/public/build /var/www/html/public/build
+COPY --from=frontend-builder /app/public/build /var/www/html_build
 
 # Install PHP Dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader

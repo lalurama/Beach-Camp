@@ -300,7 +300,35 @@ Error ini terjadi ketika kernel Linux gagal mengeksekusi script bash karena form
       && chmod +x /usr/local/bin/entrypoint.sh
   ENTRYPOINT ["/bin/sh", "/usr/local/bin/entrypoint.sh"]
   ```
-  Lalu di server, cukup jalankan `git pull origin main` dan `docker compose up -d --build`.
+### Error: `SQLSTATE[HY000] [1045] Access denied for user 'beachcamp'`
+Error ini terjadi ketika password yang dikirim oleh Laravel di `.env` **berbeda** dengan password yang diinisialisasi oleh container MySQL:
+- **Penyebab Utama**:
+  1. Tanda kutip (`"`) di sekitar password di file `.env` (misal `DB_PASSWORD="secret"`). Docker Compose tidak membuang tanda kutip saat mengoper ke MySQL, sementara Laravel Dotenv membuang tanda kutipnya, sehingga terjadi ketidaksesuaian password.
+  2. Karakter khusus (seperti `!`, `$`, `#`) di dalam password yang terpotong/berubah saat interpolasi variabel di shell.
+- **Solusi 1 (Paling Cepat - 1 Baris Perintah)**:
+  Sinkronkan password user `beachcamp` secara langsung di dalam container database MySQL:
+  ```bash
+  # Ganti 'PasswordBaruAnda' dengan password yang sama persis di file .env Anda:
+  docker compose exec db mysql -u root -prootsecret -e "ALTER USER 'beachcamp'@'%' IDENTIFIED BY 'PasswordBaruAnda'; FLUSH PRIVILEGES;"
+  ```
+  Lalu jalankan migrasi:
+  ```bash
+  docker compose exec app php artisan migrate --force --seed
+  ```
+- **Solusi 2 (Reset Ulang Volume Database Bersih)**:
+  1. Di `.env`, pastikan password alfanumerik tanpa tanda kutip:
+     ```env
+     DB_DATABASE=beachcamp
+     DB_USERNAME=beachcamp
+     DB_PASSWORD=BeachCampSecure2026
+     DB_ROOT_PASSWORD=BeachCampRoot2026
+     ```
+  2. Reset volume dan nyalakan ulang:
+     ```bash
+     docker compose down -v
+     docker compose up -d
+     docker compose exec app php artisan migrate --force --seed
+     ```
 
 ---
 *Dokumentasi ini tersimpan di `Docs/SERVER-DEPLOYMENT-GUIDE.md` pada repositori Beach Camp.*

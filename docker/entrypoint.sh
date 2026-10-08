@@ -31,8 +31,16 @@ fi
 
 # Ensure compiled frontend assets exist
 if [ ! -d /var/www/html/public/build ] || [ ! -f /var/www/html/public/build/manifest.json ]; then
-    echo "Compiled frontend assets missing. Building frontend assets..."
-    npm run build || true
+    echo "Compiled frontend assets missing in public/build."
+    if [ -d /var/www/html_build ]; then
+        echo "Restoring pre-compiled assets from image..."
+        mkdir -p /var/www/html/public/build
+        cp -r /var/www/html_build/* /var/www/html/public/build/ 2>/dev/null || true
+    fi
+    if [ ! -f /var/www/html/public/build/manifest.json ]; then
+        echo "Building frontend assets..."
+        npm run build || true
+    fi
 fi
 
 # Generate app key if not set
